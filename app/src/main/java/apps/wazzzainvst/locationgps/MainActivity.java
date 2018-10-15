@@ -53,8 +53,8 @@ public class MainActivity
     private TextView tv_lon;
     private ListView listView;
     private ArrayList myList;
-    private double iniLat = 181,iniLon = 181,currentLat,currentLon,prevLat = 181,prevLon =181, currentDistance =0, totalDistance =0;
-    private final double EARTH_RADIUS = 6371;
+    private double iniLat = Double.NaN,iniLon = Double.NaN,currentLat,currentLon,prevLat = Double.NaN,prevLon = Double.NaN, currentDistance =0, totalDistance =0;
+    private static final double EARTH_RADIUS = 6371;
     private Button myButton;
     private static final int REQUEST_LOCATION = 1;
 
@@ -96,9 +96,7 @@ public class MainActivity
 
 
         // check permissions
-        if (checkSelfPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                     this,
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
@@ -111,6 +109,8 @@ public class MainActivity
         return permissions_granted;
     }
 
+
+    //permission granted or not
     @Override
     public void onRequestPermissionsResult(
             int requestCode, @NonNull String[] permissions,
@@ -123,23 +123,23 @@ public class MainActivity
             // we have only asked for FINE LOCATION
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 this.permissions_granted = true;
-                Log.i(LOGTAG, "Fine location permisssion granted.");
+                Log.i(LOGTAG, "Fine location permission granted.");
             }
             else {
                 this.permissions_granted = false;
-                Log.i(LOGTAG, "Fine location permisssion not granted.");
+                Log.i(LOGTAG, "Fine location permission not granted.");
             }
         }
 
     }
 
 
-
+    //on click update for the button
     private void update() {
         final SharedPreferences pref = getApplicationContext().getSharedPreferences("Profile", 0); // 0 - for private mode
         final SharedPreferences.Editor editor = pref.edit();
 
-        myButton.setText("Updating...");
+        myButton.setText(R.string.updating);
         editor.putBoolean("clicked",true).apply();
 
         if (handler == null) {
@@ -148,11 +148,7 @@ public class MainActivity
 
             System.out.println("TEST 1");
 
-
         }
-
-
-
     }
 
 
@@ -173,7 +169,7 @@ public class MainActivity
                 public void run() {
                     System.out.println("TEST 2");
 
-                    if (iniLat ==181){
+                    if (iniLat == Double.NaN && iniLon == Double.NaN){
 
                         iniLat = lat;
                         iniLon = lon;
@@ -184,25 +180,20 @@ public class MainActivity
                     currentLon = lon;
 
 
-                    if (prevLat == 181){
+                    if (prevLat == Double.NaN){
                         currentDistance = 0;
                         totalDistance = 0;
 
                         System.out.println("Prev Lat "+prevLat+" - "+prevLon);
-
-
                     }else{
                         //calculate
                         System.out.println("Prev Lat "+prevLat+" - "+prevLon);
 
                         currentDistance = calculateDistance(currentLat,currentLon,prevLat,prevLon);
                         totalDistance = calculateDistance(currentLat,currentLon,iniLat,iniLon);
-
-
-
                     }
 
-                     String velocity = "0.0";
+                    String velocity = "0.0";
 
                     String myData = currentLat +","+currentLon+","+currentDistance+","+totalDistance +"," +velocity;
                     System.out.println("TEST "+myData);
@@ -228,12 +219,12 @@ public class MainActivity
         double dLat = Math.toRadians((currentLat - prevLat));
         double dLong = Math.toRadians((currentLon - prevLon));
 
-       currentLat = Math.toRadians(currentLat);
+        currentLat = Math.toRadians(currentLat);
         prevLat = Math.toRadians(prevLat);
 
         double a = Math.pow(Math.sin(dLat/2.0),2) + Math.cos(prevLat) * Math.cos(currentLat)  * Math.pow(Math.sin(dLong/2.0),2);
 
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double c = 2 * Math.atan(Math.sqrt(a));
         return EARTH_RADIUS * c;
     }
 
@@ -248,8 +239,8 @@ public class MainActivity
         public MyAdapter(Context c, ArrayList<String> list)
         {
             // TODO Auto-generated method stub
-            context = c;
-            MyArr = list;
+            this.context = c;
+            this.MyArr = list;
         }
 
         public int getCount() {
@@ -277,8 +268,6 @@ public class MainActivity
                 convertView = inflater.inflate(R.layout.list_item, null);
             }
 
-
-
             String myData [] = (MyArr.get(position).split(","));
 
 //            System.out.println("TEST 10"+myData);
@@ -298,15 +287,11 @@ public class MainActivity
             // Velocity
             TextView txtVelocity = (TextView) convertView.findViewById(R.id.textView_velocity);
 
-
-
             txtVelocity.setText(getString(R.string.avg_velocity)+ "0.0");
 
 
             return convertView;
 
         }
-
     }
-
 }
