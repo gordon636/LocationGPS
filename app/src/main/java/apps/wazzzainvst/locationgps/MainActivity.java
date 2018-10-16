@@ -2,6 +2,7 @@ package apps.wazzzainvst.locationgps;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -71,20 +72,9 @@ public class MainActivity
             @Override
             public void onClick(View view) {
 
-                tv_startLocation.setText("Start Location: "+currentLat+", "+ currentLon);
-
-                startLocation  = new Location("");
-                startLocation.setLongitude(currentLat);
-                startLocation.setLatitude(currentLon);
-                iniLat  = currentLat;
-                iniLon = currentLon;
-                handler.deleteObservers();
-                if (handler == null) {
-                    handler = new LocationHandler(MainActivity.this,tv_coordinates,startLocation);
-                    handler.addObserver(MainActivity.this);
-                    //    handler.deleteObservers();
-                }
-
+               finish();
+                Intent intent = new Intent(MainActivity.this,MainActivity.class);
+                startActivity(intent);
             }
         });
 

@@ -107,7 +107,7 @@ public class LocationHandler
 
             startLocation.setLatitude(location.getLatitude());
             startLocation.setLongitude(location.getLongitude());
-
+            System.out.println("START LOCATION WAS RESET "+startLocation.getLatitude() + " , "+startLocation.getLongitude());
         }
 
         myLocation.setText("Your Current Location: "+location.getLatitude() + ", "+location.getLongitude());
