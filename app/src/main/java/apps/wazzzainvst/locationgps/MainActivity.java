@@ -49,14 +49,15 @@ public class MainActivity
         extends AppCompatActivity
         implements Observer {
 
-    private TextView tv_lat;
-    private TextView tv_lon;
+    private TextView tv_coordinates;
+
     private ListView listView;
     private ArrayList myList;
-    private double iniLat = 181,iniLon = 181,currentLat,currentLon,prevLat = 181,prevLon =181, currentDistance =0, totalDistance =0;
-    private final double EARTH_RADIUS = 6371;
-    private Button myButton;
+    public double iniLat = 181, iniLon = 181, currentLat, currentLon, prevLat = 181, prevLon = 181, currentDistance = 0, totalDistance = 0;
+    private static final double EARTH_RADIUS = 6371;
+    public Button myButton;
     private static final int REQUEST_LOCATION = 1;
+    private Location startLocation;
 
     private Observable location;
     private LocationHandler handler = null;
@@ -66,39 +67,43 @@ public class MainActivity
     private boolean permissions_granted;
     private final static String LOGTAG =
             MainActivity.class.getSimpleName();
+    private LocationManager lm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-      //  this.tv_lat = findViewById(R.id.tv_lat);
-       // this.tv_lon = findViewById(R.id.tv_lon);
+        //  this.tv_lat = findViewById(R.id.tv_lat);
+        // this.tv_lon = findViewById(R.id.tv_lon);
 
-    /*
+        tv_coordinates = findViewById(R.id.textViewCurrent);
+        myButton = findViewById(R.id.button);
+
+        startLocation  = new Location("");
+        startLocation.setLongitude(0);
+        startLocation.setLatitude(0);
+
         if (handler == null) {
-            this.handler = new LocationHandler(this);
+            this.handler = new LocationHandler(this,myButton,tv_coordinates,startLocation);
             this.handler.addObserver(this);
+        //    handler.deleteObservers();
         }
 
-*/
+
         listView = findViewById(R.id.listView);
 
         myList = new ArrayList<String>();
-
-        myButton = findViewById(R.id.button);
         myButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-              update();
+                update();
             }
         });
 
 
         // check permissions
-        if (checkSelfPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                     this,
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
@@ -111,6 +116,8 @@ public class MainActivity
         return permissions_granted;
     }
 
+
+    //permission granted or not
     @Override
     public void onRequestPermissionsResult(
             int requestCode, @NonNull String[] permissions,
@@ -123,36 +130,33 @@ public class MainActivity
             // we have only asked for FINE LOCATION
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 this.permissions_granted = true;
-                Log.i(LOGTAG, "Fine location permisssion granted.");
+                Log.i(LOGTAG, "Fine location permission granted.");
             }
             else {
                 this.permissions_granted = false;
-                Log.i(LOGTAG, "Fine location permisssion not granted.");
+                Log.i(LOGTAG, "Fine location permission not granted.");
             }
         }
 
     }
 
 
-
+    //on click update for the button
     private void update() {
         final SharedPreferences pref = getApplicationContext().getSharedPreferences("Profile", 0); // 0 - for private mode
         final SharedPreferences.Editor editor = pref.edit();
 
-        myButton.setText("Updating...");
+        myButton.setText("Updating");
         editor.putBoolean("clicked",true).apply();
 
         if (handler == null) {
-            handler = new LocationHandler(MainActivity.this,myButton);
+            handler = new LocationHandler(MainActivity.this,myButton,tv_coordinates,startLocation);
             handler.addObserver(MainActivity.this);
+
 
             System.out.println("TEST 1");
 
-
         }
-
-
-
     }
 
 
@@ -173,10 +177,14 @@ public class MainActivity
                 public void run() {
                     System.out.println("TEST 2");
 
-                    if (iniLat ==181){
+                    if (iniLat == 181 && iniLon == 181){
 
                         iniLat = lat;
+
                         iniLon = lon;
+
+                        startLocation.setLatitude(lat);
+                        startLocation.setLongitude(lon);
                         System.out.println("UPDATE INITIAL ");
                     }
 
@@ -189,33 +197,28 @@ public class MainActivity
                         totalDistance = 0;
 
                         System.out.println("Prev Lat "+prevLat+" - "+prevLon);
-
-
                     }else{
                         //calculate
                         System.out.println("Prev Lat "+prevLat+" - "+prevLon);
 
                         currentDistance = calculateDistance(currentLat,currentLon,prevLat,prevLon);
                         totalDistance = calculateDistance(currentLat,currentLon,iniLat,iniLon);
-
-
-
                     }
 
-                     String velocity = "0.0";
+                    String velocity = "0.0";
 
                     String myData = currentLat +","+currentLon+","+currentDistance+","+totalDistance +"," +velocity;
                     System.out.println("TEST "+myData);
 
-                   if (pref.getBoolean("clicked",true)) {
+                    if (pref.getBoolean("clicked",true)) {
 
-                       myList.add(myData);
-                       listView.setAdapter(new MyAdapter(MainActivity.this, myList));
-                       editor.putBoolean("clicked",false).apply();
+                        myList.add(0,myData);
+                        listView.setAdapter(new MyAdapter(MainActivity.this, myList));
+                        editor.putBoolean("clicked",false).apply();
 
-                       prevLat = currentLat;
-                       prevLon = currentLon;
-                   }
+                        prevLat = currentLat;
+                        prevLon = currentLon;
+                    }
                 }
             });
         }
@@ -228,13 +231,13 @@ public class MainActivity
         double dLat = Math.toRadians((currentLat - prevLat));
         double dLong = Math.toRadians((currentLon - prevLon));
 
-       currentLat = Math.toRadians(currentLat);
+        currentLat = Math.toRadians(currentLat);
         prevLat = Math.toRadians(prevLat);
 
         double a = Math.pow(Math.sin(dLat/2.0),2) + Math.cos(prevLat) * Math.cos(currentLat)  * Math.pow(Math.sin(dLong/2.0),2);
 
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return EARTH_RADIUS * c;
+        double c = 2 * Math.atan(Math.sqrt(a));
+        return (EARTH_RADIUS * c)*1000;
     }
 
 
@@ -248,8 +251,8 @@ public class MainActivity
         public MyAdapter(Context c, ArrayList<String> list)
         {
             // TODO Auto-generated method stub
-            context = c;
-            MyArr = list;
+            this.context = c;
+            this.MyArr = list;
         }
 
         public int getCount() {
@@ -277,36 +280,30 @@ public class MainActivity
                 convertView = inflater.inflate(R.layout.list_item, null);
             }
 
-
-
             String myData [] = (MyArr.get(position).split(","));
 
 //            System.out.println("TEST 10"+myData);
 
             // Coordinates
             TextView txtCoordinates = (TextView) convertView.findViewById(R.id.textView_coordiates);
-            txtCoordinates.setText(myData[0]+","+myData[1]);
+            txtCoordinates.setText(myData[0]+", "+myData[1]);
 
             // Current Distance from last point
             TextView txtDistance = (TextView) convertView.findViewById(R.id.textView_distance_prev);
-            txtDistance.setText(getString(R.string.last_dist)+myData[2]);
+            txtDistance.setText(getString(R.string.last_dist)+": " +myData[2]+ " km");
 
             // Total Distance from start
             TextView txtStartDistance = (TextView) convertView.findViewById(R.id.textView_distance_original);
-            txtStartDistance.setText(getString(R.string.start_dist)+myData[3]);
+            txtStartDistance.setText(getString(R.string.start_dist)+": " +myData[3] + " km");
 
             // Velocity
             TextView txtVelocity = (TextView) convertView.findViewById(R.id.textView_velocity);
 
-
-
-            txtVelocity.setText(getString(R.string.avg_velocity)+ "0.0");
+            txtVelocity.setText(getString(R.string.avg_velocity)+": " + "0.0");
 
 
             return convertView;
 
         }
-
     }
-
 }

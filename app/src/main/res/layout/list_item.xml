@@ -1,38 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/textView_coordiates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Coordinates"
-        android:textSize="18sp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView_distance_prev"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_distance_original"
-        android:text="Distance - From Previous" />
+        <TextView
+            android:id="@+id/textView_coordiates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="Coordinates"
+            android:textColor="@android:color/background_light"
+            android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/textView_distance_original"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_coordiates"
-        android:text="Distance - From Original" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/textView_velocity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_distance_prev"
-        android:text="Average Velocity" />
+            <TextView
+                android:id="@+id/textView_distance_prev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/textView_distance_original"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:text="Distance - From Previous"
+                android:textColor="@android:color/background_light" />
 
-</RelativeLayout>
+            <TextView
+                android:id="@+id/textView_distance_original"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/textView_coordiates"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:text="Distance - From Original"
+                android:textColor="@android:color/background_light" />
+
+            <TextView
+                android:id="@+id/textView_velocity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="false"
+                android:layout_below="@+id/textView_distance_prev"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:text="Average Velocity"
+                android:textColor="@android:color/background_light" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
