@@ -3,4 +3,11 @@
     <string name="avg_velocity">Average Velocity</string>
     <string name="start_dist">Distance from Start</string>
     <string name="last_dist">Distance from Last Point</string>
+    <string name="coordinates">Coordinates</string>
+    <string name="distance_from_previous">Distance - From Previous</string>
+    <string name="distance_from_original">Distance - From Original</string>
+    <string name="average_velocity">Average Velocity</string>
+    <string name="location_history">Location History</string>
+    <string name="update">Update</string>
+    <string name="updating">Updating...</string>
 </resources>

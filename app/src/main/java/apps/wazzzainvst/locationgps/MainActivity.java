@@ -53,9 +53,15 @@ public class MainActivity
 
     private ListView listView;
     private ArrayList myList;
+<<<<<<< HEAD
     public double iniLat = 181, iniLon = 181, currentLat, currentLon, prevLat = 181, prevLon = 181, currentDistance = 0, totalDistance = 0;
     private static final double EARTH_RADIUS = 6371;
     public Button myButton;
+=======
+    private double iniLat = Double.NaN,iniLon = Double.NaN,currentLat,currentLon,prevLat = Double.NaN,prevLon = Double.NaN, currentDistance =0, totalDistance =0;
+    private static final double EARTH_RADIUS = 6371;
+    private Button myButton;
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
     private static final int REQUEST_LOCATION = 1;
     private Location startLocation;
 
@@ -146,7 +152,11 @@ public class MainActivity
         final SharedPreferences pref = getApplicationContext().getSharedPreferences("Profile", 0); // 0 - for private mode
         final SharedPreferences.Editor editor = pref.edit();
 
+<<<<<<< HEAD
         myButton.setText("Updating");
+=======
+        myButton.setText(R.string.updating);
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
         editor.putBoolean("clicked",true).apply();
 
         if (handler == null) {
@@ -154,8 +164,11 @@ public class MainActivity
             handler.addObserver(MainActivity.this);
 
 
+<<<<<<< HEAD
             System.out.println("TEST 1");
 
+=======
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
         }
     }
 
@@ -177,7 +190,11 @@ public class MainActivity
                 public void run() {
                     System.out.println("TEST 2");
 
+<<<<<<< HEAD
                     if (iniLat == 181 && iniLon == 181){
+=======
+                    if (iniLat == Double.NaN && iniLon == Double.NaN){
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
 
                         iniLat = lat;
 
@@ -192,7 +209,7 @@ public class MainActivity
                     currentLon = lon;
 
 
-                    if (prevLat == 181){
+                    if (prevLat == Double.NaN){
                         currentDistance = 0;
                         totalDistance = 0;
 
@@ -237,7 +254,11 @@ public class MainActivity
         double a = Math.pow(Math.sin(dLat/2.0),2) + Math.cos(prevLat) * Math.cos(currentLat)  * Math.pow(Math.sin(dLong/2.0),2);
 
         double c = 2 * Math.atan(Math.sqrt(a));
+<<<<<<< HEAD
         return (EARTH_RADIUS * c)*1000;
+=======
+        return EARTH_RADIUS * c;
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
     }
 
 
@@ -299,7 +320,11 @@ public class MainActivity
             // Velocity
             TextView txtVelocity = (TextView) convertView.findViewById(R.id.textView_velocity);
 
+<<<<<<< HEAD
             txtVelocity.setText(getString(R.string.avg_velocity)+": " + "0.0");
+=======
+            txtVelocity.setText(getString(R.string.avg_velocity)+ "0.0");
+>>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
 
 
             return convertView;
