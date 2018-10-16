@@ -25,11 +25,13 @@ public class LocationHandler
     private TextView myLocation;
    Location startLocation ;
 
-    public LocationHandler(MainActivity act, Button aButton, TextView myLocation, Location startLocation) {
+    public LocationHandler(MainActivity act, TextView myLocation, Location startLocation) {
         myButton = act.myButton;
         this.myLocation = myLocation;
         this.startLocation = startLocation;
         this.act = act;
+
+
         this.lm = (LocationManager) this.act.getSystemService(
                 Context.LOCATION_SERVICE);
 
@@ -93,11 +95,23 @@ public class LocationHandler
         notifyObservers(location);
      //   deleteObservers();
 
-        myButton.setText("Update");
+        act.myButton.setEnabled(true);
+        act.myButton.setText("Update");
         act.currentLat = location.getLatitude();
         act.currentLon = location.getLongitude();
 
-        myLocation.setText("Your Current Location: "+location.getLatitude() + ", "+location.getLongitude()+ " - Speed: "+location.getSpeed() +  " - " +location.distanceTo(startLocation));
+        System.out.println("TESTING"+startLocation.getLatitude());
+        if (startLocation.getLatitude() == 0){
+
+
+
+            startLocation.setLatitude(location.getLatitude());
+            startLocation.setLongitude(location.getLongitude());
+
+        }
+
+        myLocation.setText("Your Current Location: "+location.getLatitude() + ", "+location.getLongitude());
+        act.myData = location.getLatitude()+":"+location.getLongitude()+":"+location.getSpeed()+":"+location.distanceTo(startLocation);
 
     }
 

@@ -5,10 +5,9 @@
     android:orientation="horizontal"
     android:padding="10dp">
 
-<<<<<<< HEAD
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <TextView
@@ -18,7 +17,7 @@
             android:layout_margin="10dp"
             android:text="Coordinates"
             android:textColor="@android:color/background_light"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,42 +56,18 @@
                 android:layout_weight="1"
                 android:text="Average Velocity"
                 android:textColor="@android:color/background_light" />
+
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="@android:color/background_light"
+            android:text="TextView" />
 
     </LinearLayout>
 
 </LinearLayout>
-=======
-    <TextView
-        android:id="@+id/textView_coordiates"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/coordinates"
-        android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/textView_distance_prev"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_distance_original"
-        android:text="@string/distance_from_previous" />
-
-    <TextView
-        android:id="@+id/textView_distance_original"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_coordiates"
-        android:text="@string/distance_from_original" />
-
-    <TextView
-        android:id="@+id/textView_velocity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_distance_prev"
-        android:text="@string/average_velocity" />
-
-</RelativeLayout>
->>>>>>> f62ea40cdaf31dd74189a38ca0c98c9ddb86a9e4
