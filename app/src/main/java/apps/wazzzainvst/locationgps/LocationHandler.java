@@ -19,16 +19,9 @@ public class LocationHandler
     // handles location services for the device
     private LocationManager lm;
     private MainActivity act;
-    private Button myButton;
-    private float speed;
     private Location l;
-    private TextView myLocation;
-   Location startLocation ;
 
-    public LocationHandler(MainActivity act, TextView myLocation, Location startLocation) {
-        myButton = act.myButton;
-        this.myLocation = myLocation;
-        this.startLocation = startLocation;
+    public LocationHandler(MainActivity act) {
         this.act = act;
 
 
@@ -61,8 +54,6 @@ public class LocationHandler
             l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
 
-
-
             if (l != null) {
                 setChanged();
                 notifyObservers(l);
@@ -93,26 +84,9 @@ public class LocationHandler
     public void onLocationChanged(Location location) {
         setChanged();
         notifyObservers(location);
-     //   deleteObservers();
 
-        act.myButton.setEnabled(true);
-        act.myButton.setText("Update");
-        act.currentLat = location.getLatitude();
-        act.currentLon = location.getLongitude();
-
-        System.out.println("TESTING"+startLocation.getLatitude());
-        if (startLocation.getLatitude() == 0){
-
-
-
-            startLocation.setLatitude(location.getLatitude());
-            startLocation.setLongitude(location.getLongitude());
-            System.out.println("START LOCATION WAS RESET "+startLocation.getLatitude() + " , "+startLocation.getLongitude());
-        }
-
-        myLocation.setText("Your Current Location: "+location.getLatitude() + ", "+location.getLongitude());
-        act.myData = location.getLatitude()+":"+location.getLongitude()+":"+location.getSpeed()+":"+location.distanceTo(startLocation);
-
+        act.instantVel = location.getSpeed();
+        //hello
     }
 
     @Override

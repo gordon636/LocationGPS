@@ -31,35 +31,50 @@ public class MainActivity
         extends AppCompatActivity
         implements Observer {
 
+    //TODO String
     private TextView tv_coordinates, tv_startLocation;
 
     private ListView listView;
-    private ArrayList myList;
-    public double iniLat = 181, iniLon = 181, currentLat, currentLon, prevLat = 181, prevLon = 181, currentDistance = 0, totalDistance = 0;
-    private static final double EARTH_RADIUS = 6371;
+    private ArrayList<String> myList;
+    public double currentDistance = 0, totalDistance = 0;
     public Button myButton,resetButton;
-
-
-    private static final int REQUEST_LOCATION = 1;
-    private Location startLocation;
-
-    private Observable location;
+    private Location startLocation = null;
+    private Location currentLocation = null;
+    private Location prev_Location = null;
     private LocationHandler handler = null;
-    private final static int PERMISSION_REQUEST_CODE = 999;
-    LocationManager locationManager;
-    public String myData;
-
+    private double overalVelocity;
+    private double pointVelocity;
+    public double instantVel;
     private boolean permissions_granted;
-    private final static String LOGTAG =
-            MainActivity.class.getSimpleName();
-    private LocationManager lm;
+    private boolean isRestart = false;
+    private String myData;
+    private Toast ToastMess;
+    private DecimalFormat df = new DecimalFormat("0.00");
+
+    private final static int PERMISSION_REQUEST_CODE = 999;
+    private static final int REQUEST_LOCATION = 1;
+    private static final double EARTH_RADIUS = 6371;
+    private final static String LOGTAG = MainActivity.class.getSimpleName();
+    private final static String CLICKED = "clicked";
+    private final static String MY_LIST = "MyList";
+    private final static String MY_DATA = "MyData";
+    private final static String MY_GPS = "MyGPSData";
+    private final static String MY_INITIAL = "MyInitial";
+    private final static String INIT_LAT = "initLat";
+    private final static String INIT_LONG = "initLon";
+    private final static String INIT_TIME = "initTime";
+    private final static String PREV_LAT = "prev_lat";
+    private final static String PREV_LONG = "prev_long";
+    private final static String PREV_TIME = "pre_time";
+    private final static String IS_START_NULL = "start_null";
+    private final static String IS_PREV_NULL = "pre_null";
+    private final static String IS_RESTART = "restart_or_not";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //  this.tv_lat = findViewById(R.id.tv_lat);
-        // this.tv_lon = findViewById(R.id.tv_lon);
 
         tv_coordinates = findViewById(R.id.textViewCurrent);
         tv_startLocation = findViewById(R.id.textViewStart);
@@ -71,24 +86,17 @@ public class MainActivity
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-               finish();
+                finish();
                 Intent intent = new Intent(MainActivity.this,MainActivity.class);
                 startActivity(intent);
             }
         });
 
-        startLocation  = new Location("");
-        startLocation.setLongitude(0);
-        startLocation.setLatitude(0);
-
-
+        //initiate the handler
         if (handler == null) {
-            this.handler = new LocationHandler(this,tv_coordinates,startLocation);
+            this.handler = new LocationHandler(this);
             this.handler.addObserver(this);
-        //    handler.deleteObservers();
         }
-
 
         listView = findViewById(R.id.listView);
 
@@ -96,8 +104,7 @@ public class MainActivity
         myButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                update();
+                 update();
             }
         });
 
@@ -110,6 +117,13 @@ public class MainActivity
                     PERMISSION_REQUEST_CODE
             );
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+      //  ToastMess = Toast.makeText(getApplicationContext(),"Waiting for GPS provider",Toast.LENGTH_LONG);
+       // ToastMess.show();
     }
 
     public boolean isPermissions_granted() {
@@ -147,73 +161,66 @@ public class MainActivity
         final SharedPreferences.Editor editor = pref.edit();
 
 
-        editor.putBoolean("clicked",true).apply();
-
-        final String Data [] = myData.split(":");
-        final double lat = Double.valueOf(Data[0].replace(",","."));
-        final double lon = Double.valueOf(Data[1].replace(",","."));
+        editor.putBoolean(CLICKED,true).apply();
+        myButton.setEnabled(false);
+        myButton.setText(R.string.Upd);
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("TEST 2");
 
-
-                if (iniLat == 181 && iniLon == 181){
-
-
-
-                    iniLat = startLocation.getLatitude();
-
-                    iniLon = startLocation.getLongitude();
-
-                    startLocation.setLatitude(lat);
-                    startLocation.setLongitude(lon);
-                    System.out.println("UPDATE INITIAL ");
+                String myData = "";
+                overalVelocity = 0.0;
+                if(ToastMess != null){
+                    ToastMess.cancel();
                 }
+                if(MainActivity.this.startLocation == null){
+                    //get current location
+                    MainActivity.this.startLocation = MainActivity.this.currentLocation;
+                    String holder = "Start Location: "+startLocation.getLatitude()+", "+startLocation.getLongitude();
+                    tv_startLocation.setText(holder);
+                    //System.out.println("START LOCATION WAS RESET "+startLocation.getLatitude() + " , "+startLocation.getLongitude()+"/nVelocity: "+startLocation.getSpeed());
 
-                currentLat = lat;
-                currentLon = lon;
-
-                if (startLocation.getLongitude()==0){
-
-                    prevLat = currentLat;
-                    prevLon = currentLon;
-
-                }
-
-
-                if (prevLat == 181){
                     currentDistance = 0;
                     totalDistance = 0;
+                    overalVelocity = 0;
+                    pointVelocity = 0;
 
-                    System.out.println("Prev Lat "+prevLat+" - "+prevLon);
+                    myData = currentLocation.getLatitude() +","+currentLocation.getLongitude()+","+currentDistance+","+totalDistance +"," +pointVelocity;
+                    MainActivity.this.prev_Location = MainActivity.this.startLocation;
                 }else{
-                    //calculate
-                    System.out.println("Prev Lat "+prevLat+" - "+prevLon);
-                    System.out.println("Start Location "+startLocation.getLatitude()+" - "+startLocation.getLongitude());
 
-                    currentDistance = calculateDistance(currentLat,currentLon,prevLat,prevLon);
-                    totalDistance = calculateDistance(currentLat,currentLon,iniLat,iniLon);
-                    if (!tv_startLocation.getText().toString().contains(String.valueOf(iniLat)) &&!tv_startLocation.getText().toString().contains(String.valueOf(iniLon))){
+                    //here to update prev
+                    currentDistance = calculateDistance(currentLocation.getLatitude(),currentLocation.getLongitude(),
+                            prev_Location.getLatitude(), prev_Location.getLongitude());
+                    //currentDistance = currentLocation.distanceTo(prev_Location);
+                    totalDistance = calculateDistance(currentLocation.getLatitude(),currentLocation.getLongitude()
+                            ,startLocation.getLatitude(),startLocation.getLongitude());
+                    //totalDistance = currentLocation.distanceTo(startLocation);
+                    pointVelocity = Double.isNaN(currentDistance/(currentLocation.getTime()/1000 - prev_Location.getTime()/1000))
+                            ? 0.0: currentDistance/(currentLocation.getTime()/1000 - prev_Location.getTime()/1000); //time in ms
+                    overalVelocity = Double.isNaN(totalDistance/(currentLocation.getTime() - startLocation.getTime()))
+                            ? 0.0: totalDistance/(currentLocation.getTime()/1000 - startLocation.getTime()/1000);
 
-                        Toast.makeText(getApplicationContext(),"The start locations do no match!!",Toast.LENGTH_LONG).show();
-                        System.out.println(iniLat+" - "+iniLon+" start coordiantes dont match - "+tv_startLocation.getText().toString());
-                    }
+                    myData = currentLocation.getLatitude() +","+currentLocation.getLongitude()+","+currentDistance+","+totalDistance +"," +pointVelocity + ","+ overalVelocity;
+                    System.out.println("TEST cur "+ currentDistance+", "+totalDistance +", " +pointVelocity);
+
                 }
 
+                MainActivity.this.prev_Location = MainActivity.this.currentLocation;
+                String holder = "Your Current Location: "+currentLocation.getLatitude() + ", "+currentLocation.getLongitude()+
+                        "\nInstantaneous Velocity: "+df.format(Double.valueOf(instantVel))+ " m/s" + "\nOverall Velocity: "+df.format(Double.valueOf(overalVelocity))+ " m/s";
+                tv_coordinates.setText(holder);
 
-                String myData = currentLat +","+currentLon+","+currentDistance+","+Data[3].replace(",",".") +"," +Data[2].replace(",",".");
-                System.out.println("TEST "+myData);
 
+                if (pref.getBoolean(CLICKED, true)) {
 
                     myList.add(0,myData);
                     listView.setAdapter(new MyAdapter(MainActivity.this, myList));
-                    editor.putBoolean("clicked",false).apply();
-
-                    prevLat = currentLat;
-                    prevLon = currentLon;
+                    editor.putBoolean(CLICKED,false).apply();
+                    myButton.setEnabled(true);
                 }
+            }
         });
     }
 
@@ -223,67 +230,31 @@ public class MainActivity
     public void update(final Observable observable,
                        Object o) {
 
-        final SharedPreferences pref = getApplicationContext().getSharedPreferences("Profile", 0); // 0 - for private mode
-        final SharedPreferences.Editor editor = pref.edit();
-
         if (observable instanceof LocationHandler) {
             final Location l = (Location) o;
             final double lat = l.getLatitude();
             final double lon = l.getLongitude();
+            final long time = l.getTime();
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    System.out.println("TEST 2");
-
-                    if (iniLat == 181 && iniLon == 181){
-
-                        iniLat = lat;
-                        iniLon = lon;
-
-                        startLocation.setLatitude(lat);
-                        startLocation.setLongitude(lon);
-                        System.out.println("UPDATE INITIAL ");
-                        Toast.makeText(getApplicationContext(),"The initial was changed",Toast.LENGTH_LONG).show();
+                    if(MainActivity.this.startLocation == null || isRestart){
+                     //   ToastMess = Toast.makeText(getApplicationContext(),"Ready to record",Toast.LENGTH_SHORT);
+                     //   ToastMess.show();
+                        isRestart = false;
                     }
 
-                    currentLat = lat;
-                    currentLon = lon;
+                    MainActivity.this.currentLocation = new Location("");
+                    MainActivity.this.currentLocation.setLatitude(lat);
+                    MainActivity.this.currentLocation.setLongitude(lon);
+                    MainActivity.this.currentLocation.setTime(time);
 
-                    if (startLocation.getLongitude()==0){
+                    String holder = "Your Current Location: "+currentLocation.getLatitude() + ", "+currentLocation.getLongitude()+
+                            "\nInstantaneous Velocity: "+df.format(Double.valueOf(instantVel))+ " m/s" + "\nOverall Velocity: "+df.format(Double.valueOf(overalVelocity))+ " m/s";
+                    tv_coordinates.setText(holder);
 
-                        prevLat = currentLat;
-                        prevLon = currentLon;
-
-                    }
-
-
-                    if (prevLat == 181) {
-                        currentDistance = 0;
-                        totalDistance = 0;
-
-                        System.out.println("Prev Lat " + prevLat + " - " + prevLon);
-                    }
-
-                    //set the start location text
-                    tv_startLocation.setText("Start Location: "+iniLat+", "+ iniLon);
-                    /*
-                    String velocity = "0.0";
-
-                    String myData = currentLat +","+currentLon+","+currentDistance+","+totalDistance +"," +velocity;
-                    System.out.println("TEST "+myData);
-
-                    if (pref.getBoolean("clicked",true)) {
-
-                        myList.add(0,myData);
-                        listView.setAdapter(new MyAdapter(MainActivity.this, myList));
-                        editor.putBoolean("clicked",false).apply();
-
-                        prevLat = currentLat;
-                        prevLon = currentLon;
-                    }
-
-                    */
+                    myButton.setEnabled(true);
                 }
             });
         }
@@ -352,23 +323,27 @@ public class MainActivity
 
             // Coordinates
             TextView txtCoordinates = (TextView) convertView.findViewById(R.id.textView_coordiates);
-            txtCoordinates.setText("Location: " +myData[0]+", "+myData[1]);
+            String holder = "Location: " +myData[0]+", "+myData[1];
+            txtCoordinates.setText(holder);
 
 
-            DecimalFormat df = new DecimalFormat("0.00");
 
             // Current Distance from last point
             TextView txtDistance = (TextView) convertView.findViewById(R.id.textView_distance_prev);
-            txtDistance.setText(getString(R.string.last_dist)+": " +df.format(Double.valueOf(myData[2])).toString()+ " m");
+            holder = getString(R.string.last_dist)+": " +df.format(Double.valueOf(myData[2])).toString()+ " m";
+            txtDistance.setText(holder);
 
             // Total Distance from start
             TextView txtStartDistance = (TextView) convertView.findViewById(R.id.textView_distance_original);
-            txtStartDistance.setText(getString(R.string.start_dist)+": " +df.format(Double.valueOf(myData[3])).toString() + " m");
+            holder = getString(R.string.start_dist)+": " +df.format(Double.valueOf(myData[3])).toString() + " m";
+            txtStartDistance.setText(holder);
 
             // Velocity
             TextView txtVelocity = (TextView) convertView.findViewById(R.id.textView_velocity);
 
-            txtVelocity.setText(getString(R.string.avg_velocity)+": " + df.format(Double.valueOf(myData[4])).toString()+ " m/s");
+          //  txtVelocity.setText("Point Velocity: " + df.format(Double.valueOf(myData[5])).toString()+ " m/s");
+            holder = "Point Velocity: " + df.format(Double.valueOf(myData[4])).toString()+ " m/s";
+            txtVelocity.setText(holder);
 
 
             return convertView;
@@ -385,15 +360,28 @@ public class MainActivity
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
 
+        savedInstanceState.putStringArrayList(MY_LIST,myList);
+        savedInstanceState.putString(MY_DATA,tv_coordinates.getText().toString());
+        savedInstanceState.putString(MY_GPS,myData);
+        savedInstanceState.putString(MY_INITIAL,tv_startLocation.getText().toString());
+        savedInstanceState.putBoolean(IS_START_NULL,startLocation == null);
+        savedInstanceState.putBoolean(IS_PREV_NULL,prev_Location == null);
+        savedInstanceState.putBoolean(IS_RESTART,!isRestart);
 
+        //initial point
+        if(startLocation != null) {
+            savedInstanceState.putDouble(INIT_LAT, startLocation.getLatitude());
+            savedInstanceState.putDouble(INIT_LONG, startLocation.getLongitude());
+            savedInstanceState.putLong(INIT_TIME, startLocation.getTime());
+        }
 
-        savedInstanceState.putStringArrayList("myList",myList);
-        savedInstanceState.putString("MyData",tv_coordinates.getText().toString());
-        savedInstanceState.putString("myGPSData",myData);
-        System.out.println("MY DATA "+myData);
-        savedInstanceState.putString("MyInitial",tv_startLocation.getText().toString());
-        savedInstanceState.putDouble("initLat",iniLat);
-        savedInstanceState.putDouble("initLon",iniLon);
+        //previous point
+        if(prev_Location != null) {
+            savedInstanceState.putDouble(PREV_LAT, prev_Location.getLatitude());
+            savedInstanceState.putDouble(PREV_LONG, prev_Location.getLongitude());
+            savedInstanceState.putLong(PREV_TIME, prev_Location.getTime());
+        }
+
 
         // etc.
 
@@ -410,22 +398,31 @@ public class MainActivity
         // Restore UI state from the savedInstanceState.
         // This bundle has also been passed to onCreate.
 
-        tv_coordinates.setText(savedInstanceState.getString("MyData"));
-        tv_startLocation.setText(savedInstanceState.getString("MyInitial"));
-        myData = savedInstanceState.getString("myGPSData");
-        if (handler == null) {
-            this.handler = new LocationHandler(this,tv_coordinates,startLocation);
-            this.handler.addObserver(this);
-            //    handler.deleteObservers();
+        tv_coordinates.setText(savedInstanceState.getString(MY_DATA));
+        tv_startLocation.setText(savedInstanceState.getString(MY_INITIAL));
+        myData = savedInstanceState.getString(MY_GPS);
 
-
-        }
         myButton.setEnabled(true);
-        iniLat = savedInstanceState.getDouble("initLat");
-        iniLon = savedInstanceState.getDouble("initLon");
+        if(!savedInstanceState.getBoolean(IS_START_NULL)) {
+            startLocation = new Location("");
+            startLocation.setLatitude(savedInstanceState.getDouble(INIT_LAT));
+            startLocation.setLongitude(savedInstanceState.getDouble(INIT_LONG));
+            startLocation.setTime(savedInstanceState.getLong(INIT_TIME));
+        }
 
-        myList = savedInstanceState.getStringArrayList("myList");
+        if(!savedInstanceState.getBoolean(IS_PREV_NULL)) {
+            prev_Location = new Location("");
+            prev_Location.setLatitude(savedInstanceState.getDouble(PREV_LAT));
+            prev_Location.setLongitude(savedInstanceState.getDouble(PREV_LONG));
+            prev_Location.setTime(savedInstanceState.getLong(PREV_TIME));
+        }
+
+        this.handler = new LocationHandler(this);
+        this.handler.addObserver(this);
+
+        myList = savedInstanceState.getStringArrayList(MY_LIST);
         listView.setAdapter(new MyAdapter(MainActivity.this, myList));
+        isRestart = savedInstanceState.getBoolean(IS_RESTART);
 
     }
 }

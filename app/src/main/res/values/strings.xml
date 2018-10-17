@@ -10,4 +10,9 @@
     <string name="location_history">Location History</string>
     <string name="update">Update</string>
     <string name="updating">Updating...</string>
+    <string name="Upd">Update</string>
+    <string name="start_location">Start Location:</string>
+    <string name="reset">Reset</string>
+    <string name="your_current_location">Current Location:</string>
+
 </resources>
